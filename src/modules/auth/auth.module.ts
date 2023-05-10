@@ -7,10 +7,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './guards/jwt-stragety';
 import { UserRepository } from './user.repository';
 import { User } from 'src/entities/user.entity';
+import { EmailVerification } from 'src/entities/email-verify.entity';
+import { MailModule } from '../mail/mail.module';
+import { ForgottenPassword } from 'src/entities/password-forgot.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    MailModule,
+    TypeOrmModule.forFeature([User, EmailVerification, ForgottenPassword]),
     JwtModule.register({
       secret: 'secretStringThatNoOneCanGuess',
       signOptions: {

@@ -1,14 +1,21 @@
 import {
+  BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/common/enum/role.enum';
+import { EmailVerification } from 'src/entities/email-verify.entity';
 import { Favorite } from 'src/entities/favorite.entity';
+import { ForgottenPassword } from 'src/entities/password-forgot.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { User } from 'src/entities/user.entity';
+import { Repository } from 'typeorm';
+import { MailService } from '../mail/mail.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { CreateUserDto } from './dto/register-user.dto';
 import { UserRepository } from './user.repository';
@@ -16,6 +23,14 @@ import { UserRepository } from './user.repository';
 export class AuthService {
   constructor(
     @InjectRepository(UserRepository) private userRepository: UserRepository,
+
+    @InjectRepository(EmailVerification)
+    private emailVerificationRepo: Repository<EmailVerification>,
+
+    @InjectRepository(ForgottenPassword)
+    private forgottenPasswordRepo: Repository<ForgottenPassword>,
+
+    private sendEmailService: MailService,
     private jwt: JwtService,
   ) {}
 
@@ -53,17 +68,19 @@ export class AuthService {
       user,
     };
   }
-
   //register
   async register(
     createUserDto: CreateUserDto,
     createProfileDto: CreateProfileDto,
   ) {
-    console.log('createProfileDto:', createProfileDto);
-    console.log('createUserDto:', createUserDto);
     const { username, email, password } = createUserDto;
     const user = new User();
-    console.log('user:', user);
+
+    if (!this.isValidEmail(email)) {
+      throw new ConflictException(
+        `Email ${email} is not available, please try another one`,
+      );
+    }
 
     if (await this.isValidUsername(username)) {
       throw new ConflictException(
@@ -84,9 +101,15 @@ export class AuthService {
     user.password = password;
     user.profile = await this.createProfile(user, createProfileDto);
     user.playlists = [];
-
+    await this.createTokenEmail(email);
+    await this.sendEmailVerifucation(email);
     await user.save();
+    return {
+      success: 'register success',
+      status: 200,
+    };
   }
+
   //create profile
   async createProfile(user: User, createProfileDto: any): Promise<Profile> {
     const { firstName, lastName, age, phone, gender, country, city, address } =
@@ -104,6 +127,7 @@ export class AuthService {
     profile.favorite = await this.createFavoriteList(profile); // create a foreign key
     return await profile.save();
   }
+
   //create favorite list
   async createFavoriteList(profile: Profile): Promise<Favorite> {
     const favorite = new Favorite();
@@ -113,13 +137,13 @@ export class AuthService {
   }
 
   //Check Email có email
-  // async isValidEmail(email: string) {
-  //   if (email) {
-  //     const pattern =
-  //       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  //     return pattern.test(email);
-  //   } else return false;
-  // }
+  async isValidEmail(email: string) {
+    if (email) {
+      const pattern =
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return pattern.test(email);
+    } else return false;
+  }
 
   //ganeral jwt toke
   generalToken(payload: any) {
@@ -157,5 +181,152 @@ export class AuthService {
       .where('user.email LIKE :email', { email });
     const count = await isEmailExist.getCount();
     return count >= 1;
+  }
+  //create token email
+  async createTokenEmail(email: string) {
+    const verifuedEmail = await this.emailVerificationRepo.findOne({
+      where: { email },
+    });
+    if (
+      verifuedEmail &&
+      (new Date().getTime() - verifuedEmail.timestamp.getTime()) / 60000 < 15
+    ) {
+      throw new HttpException(
+        'LOGIN_EMAIL_SENT_RECENTLY',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } else {
+      const newEmailVerification = new EmailVerification();
+      newEmailVerification.email = email;
+      newEmailVerification.emailToken = (
+        Math.floor(Math.random() * 900000) + 100000
+      ).toString();
+      newEmailVerification.timestamp = new Date();
+      await newEmailVerification.save();
+    }
+  }
+
+  async sendEmailVerifucation(email: string) {
+    const verifiedEmail = await this.emailVerificationRepo.findOne({
+      where: { email },
+    });
+    if (verifiedEmail && verifiedEmail.emailToken) {
+      const url = `<a style='text-decoration:none;'
+      href= http://localhost:1110/auth/verified-email/${verifiedEmail.emailToken}>Click Here to confirm your email</a>`;
+
+      return await this.sendEmailService.sendEmailConfirmation(email, url);
+    }
+  }
+
+  //verifiedEmail
+  async verifiedEmail(token: string) {
+    const verifiedEmail = await this.emailVerificationRepo.findOne({
+      where: {
+        emailToken: token,
+      },
+    });
+    console.log('verifiedEmail:', verifiedEmail);
+    if (verifiedEmail && verifiedEmail.email) {
+      const user = await this.userRepository.findOne({
+        where: {
+          email: verifiedEmail.email,
+        },
+      });
+      if (user) {
+        user.isEmailVerified = true;
+        await user.save();
+        await verifiedEmail.remove();
+        return { isFullyVerified: true, success: true };
+      }
+    } else {
+      throw new HttpException(
+        'LOGIN_EMAIL_CODE_NOT_VALID',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  //forgot password
+  async forgotPassword(email: string) {
+    //create token password
+    const invalidForgotassword = await this.forgottenPasswordRepo.findOne({
+      where: {
+        email,
+      },
+    });
+    const invaliddate =
+      (new Date().getTime() - invalidForgotassword.timestamp.getTime()) /
+        60000 <
+      15;
+    if (invalidForgotassword && invaliddate) {
+      throw new HttpException(
+        'PASSWORD_RESET_SENT_RECENTLY',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } else {
+      const new_forgotPassword = new ForgottenPassword();
+      new_forgotPassword.email = email;
+      new_forgotPassword.timestamp = new Date();
+      new_forgotPassword.newPasswordToken = Math.floor(
+        Math.random() * 999999,
+      ).toString();
+      await new_forgotPassword.save();
+      //send email
+      await this.sendEmailForgotPassword(email);
+      return 'send forgot password okale!';
+    }
+  }
+  async sendEmailForgotPassword(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    const invalidForgotassword = await this.forgottenPasswordRepo.findOne({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      throw new BadRequestException('user do not exists');
+    }
+    if (invalidForgotassword && invalidForgotassword.newPasswordToken) {
+      const url = `<a style='text-decoration:none;'
+      href= http://localhost:1110/auth/forgot-password/${invalidForgotassword.newPasswordToken}>Click Here to change your password</a>`;
+      await this.sendEmailService.sendEmailForgotPassword(email, url);
+    }
+  }
+  //verify and change password
+  async verifiedPassword(token: string, newPassword: string) {
+    //verifid token
+    const invalidForgotassword = await this.forgottenPasswordRepo.findOne({
+      where: {
+        newPasswordToken: token,
+      },
+    });
+    if (invalidForgotassword) {
+      const user = await this.userRepository.findOne({
+        where: {
+          email: invalidForgotassword.email,
+        },
+      });
+      user.password = newPassword;
+      await user.save();
+      delete user.password;
+      await invalidForgotassword.remove();
+    }
+  }
+  //set new password
+  async setPassword(email: string, newPassword: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new HttpException('LOGIN_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
+    user.password = newPassword;
+    await user.save();
+    return true;
+  }
+  //findAllUser
+  async findAll() {
+    const users = await this.userRepository.find();
+    return users;
   }
 }

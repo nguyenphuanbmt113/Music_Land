@@ -42,6 +42,7 @@ export class UserRepository extends Repository<User> {
       .addSelect('user.password')
       .where('user.email = :email', { email: emailLoginDto.email })
       .getOne();
+    console.log('user:', user);
     if (!user) {
       throw new NotFoundException('User does not exist in the database');
     }

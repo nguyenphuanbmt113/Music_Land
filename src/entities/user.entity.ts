@@ -3,6 +3,7 @@ import { Role } from 'src/common/enum/role.enum';
 import {
   BaseEntity,
   BeforeInsert,
+  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -55,7 +56,8 @@ export class User extends BaseEntity {
   }
 
   async validatePassword(hashPassword: string) {
-    const comparePass = await bcryptjs.compare(this.password, hashPassword);
+    const comparePass = await bcryptjs.compareSync(hashPassword, this.password); //password hash
+    console.log('comparePass:', comparePass);
     return comparePass;
   }
 
