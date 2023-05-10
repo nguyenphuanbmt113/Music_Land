@@ -1,6 +1,7 @@
 import * as bcryptjs from 'bcryptjs';
 import { Role } from 'src/common/enum/role.enum';
 import {
+  BaseEntity,
   BeforeInsert,
   Column,
   Entity,
@@ -12,7 +13,7 @@ import {
 import { Profile } from './profile.entity';
 import { Playlist } from './playlist.entity';
 @Entity('users')
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -63,7 +64,7 @@ export class User {
   @JoinColumn()
   profile: Profile;
 
-  @Column()
+  @Column({ nullable: true })
   profileId: string;
 
   @OneToMany(() => Playlist, (playlist) => playlist.user, {

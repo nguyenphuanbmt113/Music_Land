@@ -6,21 +6,23 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
-import { User } from './user.entity';
 import { Favorite } from './favorite.entity';
+import { User } from './user.entity';
 
 @Entity('profiles')
-@Unique(['phone'])
 export class Profile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   firstName: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   lastName: string;
 
   @Column({

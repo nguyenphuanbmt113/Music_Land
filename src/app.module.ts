@@ -6,7 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AccessControlModule } from 'nest-access-control';
-import { roles } from './modules/auth/role.module';
 import { AlbumModule } from './modules/album/album.module';
 import { ArtistModule } from './modules/artist/artist.module';
 import { MusicianModule } from './modules/musician/musician.module';
@@ -32,7 +31,6 @@ import { PlaylistModule } from './modules/playlist/playlist.module';
     }),
     DatabaseModule,
     AuthModule,
-    AccessControlModule.forRoles(roles),
     AlbumModule,
     ArtistModule,
     MusicianModule,

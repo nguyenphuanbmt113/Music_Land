@@ -2,15 +2,20 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { Role } from 'src/common/enum/role.enum';
 import { User } from 'src/entities/user.entity';
-import { EntityRepository, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
-@EntityRepository(User)
+@Injectable()
 export class UserRepository extends Repository<User> {
+  constructor(private dataSource: DataSource) {
+    super(User, dataSource.createEntityManager());
+  }
+
   async findByEmail(email: string): Promise<User> {
     return await this.findOne({
       where: {
@@ -27,7 +32,7 @@ export class UserRepository extends Repository<User> {
     });
   }
 
-  async hashPassword(password, salt: string): Promise<string> {
+  async hashPassword(password: string, salt: string): Promise<string> {
     return await bcrypt.hash(password, salt);
   }
 
