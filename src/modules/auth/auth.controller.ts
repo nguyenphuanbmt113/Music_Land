@@ -7,12 +7,17 @@ import {
   Patch,
   Post,
   Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserLoginDto } from './dto/login-user.dto';
 import { Role } from 'src/common/enum/role.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { editFile, fileFilter } from 'src/common/helpers/handling-files.helper';
+import { diskStorage } from 'multer';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -99,5 +104,28 @@ export class AuthController {
   @Get('user/:id')
   GetUserById(@Param('userId') userId: number) {
     return this.authService.getUserById(userId);
+  }
+
+  @Post('upload-avatar')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './avatars',
+        filename: editFile,
+      }),
+      fileFilter,
+    }),
+  )
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    console.log(file);
+    const res = file.filename;
+    return {
+      filePath: `http://localhost:1110/auth/avatar/${res}`,
+    };
+  }
+
+  @Get('avatar/:pathfile')
+  getAvatar(@Param('pathfile') pathfile: string, @Res() res: Response) {
+    res.sendFile(pathfile, { root: './avatars' });
   }
 }
