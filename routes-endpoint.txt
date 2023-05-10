@@ -1,0 +1,25 @@
+*** Auth Endpoints ***
+
+- localhost:3000/auth
+
+
+
+- localhost:3000/auth/check-username (GET Method)
+
+- localhost:3000/auth/system-users (GET Method)
+- localhost:3000/auth/current-user (GET Method)
+- localhost:3000/auth/user-main-data (GET Method)
+
+- localhost:3000/auth/login/user (POST Method)
+- localhost:3000/auth/login/admin (POST Method)
+- localhost:3000/auth/email/register (POST Method)
+- localhost:3000/auth/email/reset-password (POST Method)
+- localhost:3000/auth/edit-user-roles (PATCH Method)
+- localhost:3000/auth/delete-user (DELETE Method)
+
+- localhost:3000/auth/email/send-verification-request/:email (GET Method)
+- localhost:3000/auth/user/:id (GET Method)
+- localhost:3000/auth/:email (GET Method)
+- localhost:3000/auth/all (GET Method)
+- localhost:3000/auth/verified-email/:token (GET Method)
+- localhost:3000/auth/forgot-password/:email (GET Method)

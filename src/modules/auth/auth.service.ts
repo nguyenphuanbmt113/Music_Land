@@ -19,6 +19,7 @@ import { MailService } from '../mail/mail.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { CreateUserDto } from './dto/register-user.dto';
 import { UserRepository } from './user.repository';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
@@ -56,6 +57,22 @@ export class AuthService {
   //login
   async login(emailDtoLogin: any): Promise<{ token: string; user: User }> {
     const { email, user } = await this.userRepository.validatePassword(
+      emailDtoLogin,
+    );
+    const payload = {
+      email: email,
+      id: user.id,
+    };
+    const token = this.generalToken(payload);
+    return {
+      token,
+      user,
+    };
+  }
+  async signInAdmin(
+    emailDtoLogin: any,
+  ): Promise<{ token: string; user: User }> {
+    const { email, user } = await this.userRepository.validateAdminPassword(
       emailDtoLogin,
     );
     const payload = {
@@ -162,7 +179,6 @@ export class AuthService {
     }
     return user;
   }
-
   //edit role
   async editUserRoles(id: number, roles: Role[]): Promise<User> {
     const user = await this.getUserById(id);
@@ -171,7 +187,6 @@ export class AuthService {
     }
     return await this.userRepository.save(user);
   }
-
   //checkIfEmailExist
   async findEmail(email: string) {
     console.log('email:', email);
@@ -320,13 +335,91 @@ export class AuthService {
     if (!user) {
       throw new HttpException('LOGIN_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    user.password = newPassword;
+    user.password = await this.hassPass(newPassword);
     await user.save();
     return true;
+  }
+  //check password
+  async checkPassword(email: string, password: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      throw new HttpException('User Does not Found', HttpStatus.NOT_FOUND);
+    }
+    return await bcrypt.compare(password, user.password);
+  }
+  //set new Password
+  async setNewPassword(resetPasswordDto: any) {
+    let isNewPasswordChanged = false;
+    const { email, newPasswordToken, currentPassword, newPassword } =
+      resetPasswordDto;
+    if (email && currentPassword) {
+      const isValidPassword = await this.checkPassword(email, currentPassword);
+      if (isValidPassword) {
+        isNewPasswordChanged = await this.setPassword(email, newPassword);
+      } else {
+        throw new HttpException(
+          'RESET_PASSWORD_WRONG_CURRENT_PASSWORD',
+          HttpStatus.CONFLICT,
+        );
+      }
+    } else if (newPasswordToken) {
+      const forgottenPassword = await this.forgottenPasswordRepo.findOne({
+        where: {
+          newPasswordToken,
+        },
+      });
+      isNewPasswordChanged = await this.setPassword(
+        forgottenPassword.email,
+        newPassword,
+      );
+      if (isNewPasswordChanged) {
+        await this.forgottenPasswordRepo.delete(forgottenPassword.id);
+      }
+    } else {
+      return new HttpException(
+        'RESET_PASSWORD_CHANGE_PASSWORD_ERROR',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    return isNewPasswordChanged;
+  }
+  async hassPass(password: string) {
+    return await bcrypt.hashSync(password, 10);
   }
   //findAllUser
   async findAll() {
     const users = await this.userRepository.find();
     return users;
+  }
+
+  async delete(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await user.remove();
+    return {
+      success: true,
+      mes: 'delete success',
+    };
+  }
+  //edit role user
+  async editRole(userId: number, roles: any) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (roles) {
+      user.roles = roles;
+      await user.save();
+    }
   }
 }
