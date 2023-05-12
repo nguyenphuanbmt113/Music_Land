@@ -6,38 +6,39 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class MusicianRepository extends Repository<Musician> {
-  async getLimitedMusician(limit: number) {
-    const query = this.createQueryBuilder('singer').select();
+  async getLimitedMusicians(limit: number): Promise<Musician[]> {
+    const query = this.createQueryBuilder('musician').select();
     if (limit) {
       query.limit(limit);
     }
-    const singers = await query
-      .leftJoinAndSelect('singer.singerAlnums', 'singer-albums')
+    const musicians = await query
+      .leftJoinAndSelect('musician.musicianAlbums', 'musician-album')
       .getMany();
-    return singers;
+    return musicians;
   }
-  async filterMusician(
+
+  async getFilteredMusicians(
     limit: number,
     nationality: string,
     type: ArtistType,
     gender: GENDER,
-  ) {
-    const query = this.createQueryBuilder('singer').select();
+  ): Promise<Musician[]> {
+    const query = this.createQueryBuilder('musician').select();
     if (limit) {
       query.limit(limit);
     }
     if (nationality) {
-      query.where('singer.nationality LIKE :nationality', { nationality });
+      query.where('musician.nationality LIKE :nationality', { nationality });
     }
     if (type) {
-      query.andWhere('singer.type = :type', { type });
+      query.andWhere('musician.type = :type', { type });
     }
     if (gender) {
-      query.andWhere('singer.gender = :gender', { gender });
+      query.andWhere('musician.gender = :gender', { gender });
     }
-    const singers = await query
-      .leftJoinAndSelect('singer.singerAlbums', 'singer-albums')
+    const musicians = await query
+      .leftJoinAndSelect('musician.musicianAlbums', 'musician-album')
       .getMany();
-    return singers;
+    return musicians;
   }
 }
