@@ -28,5 +28,6 @@ import { ForgottenPassword } from 'src/entities/password-forgot.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, UserRepository],
+  exports: [AuthService, UserRepository],
 })
 export class AuthModule {}

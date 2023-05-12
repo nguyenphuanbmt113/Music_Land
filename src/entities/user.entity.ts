@@ -30,8 +30,8 @@ export class User extends BaseEntity {
   @Column({
     type: 'enum',
     enum: Role,
-    enumName: 'roles',
-    default: Role.USER,
+    array: true,
+    default: [Role.USER],
   })
   roles: Role[];
 

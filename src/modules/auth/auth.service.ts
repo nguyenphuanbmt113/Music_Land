@@ -189,7 +189,6 @@ export class AuthService {
   }
   //checkIfEmailExist
   async findEmail(email: string) {
-    console.log('email:', email);
     const query = this.userRepository.createQueryBuilder('user');
     const isEmailExist = query
       .select('email')
@@ -400,6 +399,7 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: { id },
     });
+    console.log('user:', user);
     if (!user) {
       throw new NotFoundException('User not found');
     }

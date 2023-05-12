@@ -7,23 +7,28 @@ import {
   Patch,
   Post,
   Res,
-  UseInterceptors,
   UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { AuthService } from './auth.service';
-import { UserLoginDto } from './dto/login-user.dto';
-import { Role } from 'src/common/enum/role.enum';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { editFile, fileFilter } from 'src/common/helpers/handling-files.helper';
 import { diskStorage } from 'multer';
+import { Role } from 'src/common/enum/role.enum';
+import { editFile, fileFilter } from 'src/common/helpers/handling-files.helper';
+import { AuthService } from './auth.service';
+import { Roles } from './decorator/role.decorator';
+import { UserLoginDto } from './dto/login-user.dto';
+import { AdminAuthGuard } from './guards/adminGuard.guard';
+import { AuthenticationGuard } from './guards/jwt-guards.guard';
+import { SeftAuthGuard } from './guards/seftGuard.guard';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('login/user')
+  @Post('login-user')
   async loginUser(@Body() loginDto: any, @Res() res: Response) {
     const { token, user } = await this.authService.login(
       loginDto as UserLoginDto,
@@ -33,7 +38,7 @@ export class AuthController {
 
   @Post('login/admin')
   async signInAdmin(@Body() loginDto: any, @Res() res: Response) {
-    const { token, user } = await this.authService.login(
+    const { token, user } = await this.authService.signInAdmin(
       loginDto as UserLoginDto,
     );
     return res.send({ success: true, user, token });
@@ -65,7 +70,7 @@ export class AuthController {
     return this.authService.findEmail(email);
   }
 
-  @Get('all')
+  @Get()
   findAll() {
     return this.authService.findAll();
   }
@@ -80,6 +85,7 @@ export class AuthController {
     return this.authService.sendEmailForgotPassword(email);
   }
 
+  @UseGuards(AuthenticationGuard)
   @Post('email/reset-password')
   setNewPassword(@Body() resetPasswordDto: any) {
     return this.authService.setNewPassword(resetPasswordDto);
@@ -91,11 +97,14 @@ export class AuthController {
     return this.authService.sendEmailVerifucation(email);
   }
 
-  @Delete('delete-user')
+  @UseGuards(AuthenticationGuard, AdminAuthGuard)
+  @Roles([Role.ADMIN])
+  @Delete('delete-user/:id')
   deleteUser(@Param('id') id: number) {
     return this.authService.delete(id);
   }
 
+  @UseGuards(AuthenticationGuard)
   @Patch('edit-user-role/:userId')
   EditRole(@Param('userId') userId: number, @Body() roles: Role[]) {
     return this.authService.editRole(userId, roles);
@@ -106,6 +115,7 @@ export class AuthController {
     return this.authService.getUserById(userId);
   }
 
+  @UseGuards(AuthenticationGuard, SeftAuthGuard)
   @Post('upload-avatar')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -128,4 +138,11 @@ export class AuthController {
   getAvatar(@Param('pathfile') pathfile: string, @Res() res: Response) {
     res.sendFile(pathfile, { root: './avatars' });
   }
+
+  // @Delete('delete-user-account')
+  // @UseGuards(AuthenticationGuard, UseGuards)
+  // @Roles([Role.USER])
+  // deleteUserAccount(@UserDecorator() user: User) {
+  //   return this.authService.deleteUserAccount(user);
+  // }
 }
