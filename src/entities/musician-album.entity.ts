@@ -7,6 +7,8 @@ import { Music } from './music.entity';
 export class MusicianAlbum extends AbstractAlbum {
   @ManyToOne(() => Musician, (musician) => musician.musicianAlbums, {
     eager: false,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   musician: Musician;
 

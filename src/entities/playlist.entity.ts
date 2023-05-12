@@ -26,6 +26,8 @@ export class Playlist extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.playlists, {
     eager: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   user: User;
 

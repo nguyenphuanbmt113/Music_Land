@@ -24,6 +24,8 @@ export class Song extends AbstractMusic {
 
   @ManyToOne(() => SingerAlbum, (singerAlbum) => singerAlbum.songs, {
     eager: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   singerAlbum: SingerAlbum;
 
