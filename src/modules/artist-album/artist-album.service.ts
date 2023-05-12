@@ -27,16 +27,7 @@ export class ArtistAlbumService {
     }
     return singerAlbum;
   }
-  //localhost:3000/singer-albums/:id/new-song
-  // async addSongtoAlbum(albumId: number, song: Song) {
-  //   const album = await this.getSignerAlbumById(albumId);
-  //   if (!album) {
-  //     throw new NotFoundException('Singer Album not found');
-  //   }
-  //   album.songs = [song];
-  //   const n_album = await album.save();
-  //   return n_album;
-  // }
+
   async createNewSong(
     singerAlbumId: number,
     name: string,

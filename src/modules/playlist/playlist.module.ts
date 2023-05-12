@@ -4,6 +4,7 @@ import { PlaylistService } from './playlist.service';
 
 @Module({
   controllers: [PlaylistController],
-  providers: [PlaylistService]
+  providers: [PlaylistService],
+  exports: [PlaylistService],
 })
 export class PlaylistModule {}

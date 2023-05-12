@@ -5,8 +5,6 @@ import * as Joi from '@hapi/joi';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { AccessControlModule } from 'nest-access-control';
-import { AlbumModule } from './modules/album/album.module';
 import { ArtistModule } from './modules/artist/artist.module';
 import { MusicianModule } from './modules/musician/musician.module';
 import { MusicianAlbumModule } from './modules/musician-album/musician-album.module';
@@ -32,7 +30,6 @@ import { MailModule } from './modules/mail/mail.module';
     }),
     DatabaseModule,
     AuthModule,
-    AlbumModule,
     ArtistModule,
     MusicianModule,
     MusicianAlbumModule,
