@@ -46,3 +46,15 @@
 - localhost:3000/singer-albums/:id/update-album -->  (PUT Method)
 -(chưa xong) localhost:3000/singer-albums/:id/delete-album -->  (DELETE Method)
 -(chưa xong) localhost:3000/singer-albums/:id/clear-album -->  (DELETE Method)
+
+
+** Profile Endpoints **
+
+(Profile Controller):
+- localhost:3000/profiles --> Root Route (Main-Endpoint - Controller Name)
+
+- localhost:3000/profiles/user-profile --> (GET Method)
+- localhost:3000/profiles/user-profile/edit --> (PUT Method)
+- localhost:3000/profiles/user-profile/set-profile-image --> (POST Method)
+- localhost:3000/profiles/user-profile/delete-profile-image --> (DELETE Method)
+- localhost:3000/profiles/user-profile/change-profile-image --> (PATCH Method)

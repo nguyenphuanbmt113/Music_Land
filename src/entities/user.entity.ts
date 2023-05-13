@@ -3,7 +3,6 @@ import { Role } from 'src/common/enum/role.enum';
 import {
   BaseEntity,
   BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -11,8 +10,8 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Profile } from './profile.entity';
 import { Playlist } from './playlist.entity';
+import { Profile } from './profile.entity';
 @Entity('users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -67,7 +66,7 @@ export class User extends BaseEntity {
   profile: Profile;
 
   @Column({ nullable: true })
-  profileId: string;
+  profileId: number;
 
   @OneToMany(() => Playlist, (playlist) => playlist.user, {
     eager: false,

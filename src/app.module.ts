@@ -14,6 +14,7 @@ import { MusicModule } from './modules/music/music.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
 import { PlaylistModule } from './modules/playlist/playlist.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ProfileModule } from './modules/profile/profile.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,6 +40,7 @@ import { MailModule } from './modules/mail/mail.module';
     FavoriteModule,
     PlaylistModule,
     MailModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
