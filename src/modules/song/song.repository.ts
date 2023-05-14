@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { SongLanguage } from 'src/common/enum/song-lang';
 import { SongType } from 'src/common/enum/song-type';
 import { Song } from 'src/entities/song.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class SongRepository extends Repository<Song> {
+  constructor(private dataSource: DataSource) {
+    super(Song, dataSource.createEntityManager());
+  }
   async getLimitedSongs(limit: number): Promise<Song[]> {
     const query = this.createQueryBuilder('song').select();
     if (limit) {

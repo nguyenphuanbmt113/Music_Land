@@ -1,5 +1,12 @@
 import { AbstractAlbum } from 'src/common/class/abstract-album';
-import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  Unique,
+} from 'typeorm';
 import { Singer } from './singer.entity';
 import { Song } from './song.entity';
 
@@ -9,6 +16,7 @@ export class SingerAlbum extends AbstractAlbum {
   @ManyToOne(() => Singer, (singer) => singer.singerAlbums, {
     eager: false,
   })
+  @JoinColumn()
   singer: Singer;
 
   //Foreign Key

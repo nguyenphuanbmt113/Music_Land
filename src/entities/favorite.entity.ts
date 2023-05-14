@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  Column,
   Entity,
   OneToMany,
   OneToOne,
@@ -12,6 +13,9 @@ import { Track } from './track.entity';
 export class Favorite extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  profileId: number;
 
   @OneToOne(() => Profile, (profile) => profile.favorite)
   profile: Profile;

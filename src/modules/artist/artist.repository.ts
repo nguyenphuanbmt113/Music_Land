@@ -9,14 +9,13 @@ export class ArtistRepository extends Repository<Singer> {
   constructor(private dataSource: DataSource) {
     super(Singer, dataSource.createEntityManager());
   }
-
   async getLimitedSinger(limit: number) {
     const query = this.createQueryBuilder('singer').select();
     if (limit) {
       query.limit(limit);
     }
     const singers = await query
-      .leftJoinAndSelect('singer.singerAlnums', 'singer-albums')
+      .leftJoinAndSelect('singer.singerAlbums', 'singerAlnums')
       .getMany();
     return singers;
   }

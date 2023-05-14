@@ -3,7 +3,7 @@ import { GENDER } from 'src/common/enum/gender.enum';
 
 export class CreateArtistDto {
   name: string;
-  image: string;
+  image: any;
   info: string;
   type: ArtistType;
   gender: GENDER;

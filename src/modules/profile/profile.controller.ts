@@ -13,6 +13,21 @@ import { ProfileService } from './profile.service';
 import { UserDecorator } from '../auth/decorator/user.decorator';
 import { User } from 'src/entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+@UseInterceptors(
+  FileInterceptor('image', {
+    storage: diskStorage({
+      destination: './photos/user',
+      filename: (req, file, cb) => {
+        const name = file.originalname.split('.')[0];
+        const nameExtension = file.originalname.split('.')[1];
+        const newName =
+          name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+        cb(null, newName);
+      },
+    }),
+  }),
+)
 @Controller('profile')
 export class ProfileController {
   constructor(private profileService: ProfileService) {}
@@ -23,13 +38,11 @@ export class ProfileController {
   }
 
   @Post('user-profile/set-profile-image')
-  @UseInterceptors(FileInterceptor('image'))
   setProfileImage(@UserDecorator() user: User, @UploadedFile() image: any) {
     return this.profileService.setProfileImage(user, image);
   }
 
   @Patch('user-profile/change-profile-image')
-  @UseInterceptors(FileInterceptor('image'))
   changeProfileImage(@UserDecorator() user: User, @UploadedFile() image: any) {
     return this.profileService.changeProfileImage(user, image);
   }

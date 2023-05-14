@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ArtistRepository } from './artist.repository';
 import { ArtistType } from 'src/common/enum/artist.enum';
@@ -8,12 +8,15 @@ import { SingerAlbum } from 'src/entities/singer-album.entity';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateArtistDto } from './dto/update-artist';
 import { CreateArtistDto } from './dto/create-artist';
+import { ArtistAlbumService } from '../artist-album/artist-album.service';
+import * as fs from 'fs';
 
 @Injectable()
 export class ArtistService {
   constructor(
     @InjectRepository(ArtistRepository)
     private artistRepository: ArtistRepository,
+    private singerAlbumService: ArtistAlbumService,
   ) {}
 
   //localhost:3000/singers
@@ -49,33 +52,37 @@ export class ArtistService {
     });
   }
   //localhost:3000/singers/new-singer
-  async createSinger(data: CreateArtistDto) {
+  async createSinger(data: CreateArtistDto, image: any) {
+    console.log('data:', data);
     const n_artist = new Singer();
     n_artist.name = data.name;
     n_artist.info = data.info;
-    n_artist.image = data.image;
+    n_artist.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
     n_artist.type = data.type;
     n_artist.gender = data.gender;
     n_artist.nationality = data.nationality;
     n_artist.singerAlbums = [];
-
     const artist = await n_artist.save();
     return artist;
   }
   //localhost:3000/singers/:id/new-album
-  async createAlbum(singerId: number, data: CreateAlbumDto) {
-    const singer = await this.artistRepository.findOne({
-      where: { id: singerId },
-    });
+  async createAlbum(singerId: number, data: CreateAlbumDto, image: any) {
+    const singer = await this.findSingerById(singerId);
     const album = new SingerAlbum();
     album.name = data.name;
-    album.image = data.image;
+    if (image) {
+      album.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
+    }
     album.singer = singer;
     const nalbum = await album.save();
     return nalbum;
   }
   //localhost:3000/singers/:id/update-singer
-  async updateSinger(id: number, data: UpdateArtistDto): Promise<Singer> {
+  async updateSinger(
+    id: number,
+    data: UpdateArtistDto,
+    image: any,
+  ): Promise<Singer> {
     const singer = await this.findSingerById(id);
     if (data.name) {
       singer.name = data.name;
@@ -92,10 +99,11 @@ export class ArtistService {
     if (data.type) {
       singer.type = data.type;
     }
-    if (data.image) {
+    if (image) {
       // await this.awsService.fileDelete(singer.image);
+      fs.unlinkSync(`photos/user/${singer.image}`);
       // singer.image = await this.awsService.fileUpload(image, 'singer-images');
-      singer.image = data.image;
+      singer.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
     }
     const savedSinger = await singer.save();
     return savedSinger;
@@ -104,11 +112,14 @@ export class ArtistService {
   //deleteSinger
   async deleteSinger(singerId: number) {
     const singer = await this.findSingerById(singerId);
-    const result = await singer.remove();
-    // if (result.affected === 0) {
-    //   throw new NotFoundException(`Singer with id ${singerId} does not found`);
-    // }
+    for (let i = 0; i < singer.singerAlbums.length; i++) {
+      const singerAlbumItem = singer.singerAlbums[i];
+      await this.singerAlbumService.deleteSingerAlbum(singerAlbumItem.id);
+    }
+    const result = await this.artistRepository.delete(singerId);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Singer with id ${singerId} does not found`);
+    }
     return result;
-    // return 'delete okela';
   }
 }

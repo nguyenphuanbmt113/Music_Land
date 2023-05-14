@@ -63,25 +63,22 @@ export class ProfileService {
       throw new NotFoundException('profile does not found');
     }
   }
-
   async setProfileImage(user: User, image: any): Promise<Profile> {
     const profile = await this.getProfileData(user);
     if (image) {
-      profile.image = image;
+      profile.image = `http://localhost:5400/post/photos/${image.filename}`;
     }
     const savedProfile = await profile.save();
     return savedProfile;
   }
-
   async changeProfileImage(user: User, image: any): Promise<Profile> {
     const profile = await this.getProfileData(user);
     if (image) {
-      profile.image = image;
+      profile.image = `http://localhost:5400/profile/photos/${image.filename}`;
     }
     const savedProfile = await profile.save();
     return savedProfile;
   }
-
   async deleteProfileImage(user: User): Promise<Profile> {
     const profile = await this.getProfileData(user);
     if (!profile.image) {

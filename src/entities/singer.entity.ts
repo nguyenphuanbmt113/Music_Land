@@ -6,7 +6,7 @@ import { SingerAlbum } from './singer-album.entity';
 @Unique(['name'])
 export class Singer extends AbstractArtist {
   @OneToMany(() => SingerAlbum, (singerAlbum) => singerAlbum.singer, {
-    eager: false,
+    eager: true,
   })
   singerAlbums: SingerAlbum[];
 }

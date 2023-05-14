@@ -6,7 +6,9 @@ import {
   Param,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Role } from 'src/common/enum/role.enum';
 import { SongLanguage } from 'src/common/enum/song-lang';
@@ -15,6 +17,8 @@ import { Roles } from '../auth/decorator/role.decorator';
 import { AdminAuthGuard } from '../auth/guards/adminGuard.guard';
 import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { SongService } from './song.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 @Controller('song')
 export class SongController {
   constructor(private songService: SongService) {}
@@ -47,7 +51,20 @@ export class SongController {
   @Put(':id/update-song')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  // @UseInterceptors(FileInterceptor('source'))
+  @UseInterceptors(
+    FileInterceptor('sourse', {
+      storage: diskStorage({
+        destination: './mp4/sourse',
+        filename: (req, file, cb) => {
+          const name = file.originalname.split('.')[0];
+          const nameExtension = file.originalname.split('.')[1];
+          const newName =
+            name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+          cb(null, newName);
+        },
+      }),
+    }),
+  )
   updateSong(
     @Param('id') id: number,
     @Body('name') name: string,
@@ -55,8 +72,9 @@ export class SongController {
     @Body('artist') artist: string,
     @Body('type') type: SongType,
     @Body('language') language: SongLanguage,
-    // @UploadedFile() source: any,
+    @UploadedFile() source: any,
   ) {
+    console.log('source:', source);
     return this.songService.updateSong(
       id,
       name,
@@ -64,7 +82,7 @@ export class SongController {
       artist,
       type,
       language,
-      // source,
+      source,
     );
   }
 
