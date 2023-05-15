@@ -7,7 +7,7 @@ import { Music } from 'src/entities/music.entity';
 import { MusicType } from 'src/common/enum/music-type';
 import { StrackService } from '../strack/strack.service';
 import { Track } from 'src/entities/track.entity';
-
+import * as fs from 'fs';
 @Injectable()
 export class MusicService {
   constructor(
@@ -68,7 +68,8 @@ export class MusicService {
     }
 
     if (source) {
-      music.source = source;
+      fs.unlinkSync(music.source);
+      music.source = source.path;
     }
     const updatedMusic = await music.save();
     return updatedMusic;

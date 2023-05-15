@@ -48,7 +48,7 @@ export class ArtistAlbumService {
     song.type = type;
     song.language = language;
     song.tempImage = singerAlbum.image;
-    song.source = source;
+    song.source = source.path;
     song.singerAlbum = singerAlbum;
     const savedSong = await song.save();
     return savedSong;

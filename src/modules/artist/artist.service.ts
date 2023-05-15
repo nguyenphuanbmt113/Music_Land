@@ -57,7 +57,7 @@ export class ArtistService {
     const n_artist = new Singer();
     n_artist.name = data.name;
     n_artist.info = data.info;
-    n_artist.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
+    n_artist.image = image.path;
     n_artist.type = data.type;
     n_artist.gender = data.gender;
     n_artist.nationality = data.nationality;
@@ -71,7 +71,7 @@ export class ArtistService {
     const album = new SingerAlbum();
     album.name = data.name;
     if (image) {
-      album.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
+      album.image = image.path;
     }
     album.singer = singer;
     const nalbum = await album.save();
@@ -100,10 +100,8 @@ export class ArtistService {
       singer.type = data.type;
     }
     if (image) {
-      // await this.awsService.fileDelete(singer.image);
-      fs.unlinkSync(`photos/user/${singer.image}`);
-      // singer.image = await this.awsService.fileUpload(image, 'singer-images');
-      singer.image = `http://localhost:1110/artist/profile/photos/${image.filename}`;
+      fs.unlinkSync(`${singer.image}`);
+      singer.image = image.path;
     }
     const savedSinger = await singer.save();
     return savedSinger;
@@ -114,6 +112,7 @@ export class ArtistService {
     const singer = await this.findSingerById(singerId);
     if (singer.image) {
       //remove image
+      fs.unlinkSync(singer.image);
     }
     for (let i = 0; i < singer.singerAlbums.length; i++) {
       const singerAlbumItem = singer.singerAlbums[i];

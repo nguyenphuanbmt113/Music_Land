@@ -138,9 +138,9 @@ export class AuthController {
   )
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     console.log(file);
-    const res = file.filename;
+    const res = file.path;
     return {
-      filePath: `http://localhost:1110/auth/avatar/${res}`,
+      filePath: res,
     };
   }
 

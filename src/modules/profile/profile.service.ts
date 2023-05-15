@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from 'src/entities/profile.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-
+import * as fs from 'fs';
 @Injectable()
 export class ProfileService {
   constructor(
@@ -66,7 +66,7 @@ export class ProfileService {
   async setProfileImage(user: User, image: any): Promise<Profile> {
     const profile = await this.getProfileData(user);
     if (image) {
-      profile.image = `http://localhost:5400/post/photos/${image.filename}`;
+      profile.image = image.path;
     }
     const savedProfile = await profile.save();
     return savedProfile;
@@ -74,7 +74,8 @@ export class ProfileService {
   async changeProfileImage(user: User, image: any): Promise<Profile> {
     const profile = await this.getProfileData(user);
     if (image) {
-      profile.image = `http://localhost:5400/profile/photos/${image.filename}`;
+      fs.unlinkSync(profile.image);
+      profile.image = profile.image;
     }
     const savedProfile = await profile.save();
     return savedProfile;

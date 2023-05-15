@@ -25,6 +25,7 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Response } from 'express';
+import { fileFilter } from 'src/common/helpers/handling-files.helper';
 
 @UseInterceptors(
   FileInterceptor('image', {
@@ -38,6 +39,7 @@ import { Response } from 'express';
         cb(null, newName);
       },
     }),
+    fileFilter: fileFilter,
   }),
 )
 @Controller('artist')
@@ -72,8 +74,8 @@ export class ArtistController {
 
   //localhost:3000/singers
   @Post()
-  // @UseGuards(AuthenticationGuard, AdminAuthGuard)
-  // @Roles([Role.ADMIN])
+  @UseGuards(AuthenticationGuard, AdminAuthGuard)
+  @Roles([Role.ADMIN])
   createNewSinger(@Body() data: CreateArtistDto, @UploadedFile() image: any) {
     console.log('image:', image);
     console.log('data:', data);
@@ -100,7 +102,6 @@ export class ArtistController {
   @Put(':id/update-singer')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  // @UseInterceptors(FileInterceptor('image'))
   updateSinger(
     @Param('id') id: number,
     @Body() data: UpdateArtistDto,

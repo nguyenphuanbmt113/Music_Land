@@ -19,6 +19,7 @@ import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { ArtistAlbumService } from './artist-album.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { fileFilter } from 'src/common/helpers/handling-files.helper';
 @Controller('artist-album')
 export class ArtistAlbumController {
   constructor(private singerAlbumService: ArtistAlbumService) {}
@@ -34,8 +35,8 @@ export class ArtistAlbumController {
   }
 
   @Post(':id/new-song')
-  // @UseGuards(AuthenticationGuard, AdminAuthGuard)
-  // @Roles([Role.ADMIN])
+  @UseGuards(AuthenticationGuard, AdminAuthGuard)
+  @Roles([Role.ADMIN])
   @UseInterceptors(
     FileInterceptor('sourse', {
       storage: diskStorage({
@@ -48,6 +49,7 @@ export class ArtistAlbumController {
           cb(null, newName);
         },
       }),
+      fileFilter: fileFilter,
     }),
   )
   createNewSong(
@@ -59,8 +61,6 @@ export class ArtistAlbumController {
     @Body('language') language: SongLanguage,
     @UploadedFile() source: any,
   ) {
-    // console.log('name:', name);
-    console.log('source:', source);
     return this.singerAlbumService.createNewSong(
       id,
       name,

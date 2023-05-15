@@ -8,7 +8,7 @@ import { SongRepository } from './song.repository';
 import { PlaylistService } from '../playlist/playlist.service';
 import { FavoriteService } from '../favorite/favorite.service';
 import { StrackService } from '../strack/strack.service';
-
+import * as fs from 'fs';
 @Injectable()
 export class SongService {
   constructor(
@@ -78,7 +78,8 @@ export class SongService {
       song.language = language;
     }
     if (source) {
-      song.source = source;
+      fs.unlinkSync(song.sourse);
+      song.source = source.path;
     }
     const updatedSong = await song.save();
     return updatedSong;
@@ -91,6 +92,7 @@ export class SongService {
     }
     if (song.source) {
       //delete sourse
+      fs.unlinkSync(song.source);
     }
     const result = await this.songRepository.delete(id);
     if (result.affected === 0) {
