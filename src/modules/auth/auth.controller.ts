@@ -51,6 +51,7 @@ export class AuthController {
       email: body.email,
       password: body.password,
       username: body.username,
+      roles: body.roles,
     };
     const createProfileDto = {
       firstName: body.firstName,

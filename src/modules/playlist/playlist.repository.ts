@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Playlist } from 'src/entities/playlist.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class PlaylistRepository extends Repository<Playlist> {
+  constructor(private dataSource: DataSource) {
+    super(Playlist, dataSource.createEntityManager());
+  }
   async getUserPlaylists(userId: number): Promise<Playlist[]> {
     const query = this.createQueryBuilder('playlist').select();
     if (userId) {

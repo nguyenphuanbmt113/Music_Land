@@ -97,7 +97,11 @@ export class SongService {
       null,
       playlistId,
     );
-    return track;
+    if (track) {
+      song.tracks = [track];
+    }
+    await song.save();
+    return 'okela add song to playlist';
   }
 
   async addSongToFavorite(songId: number, favoriteId: number) {
@@ -107,6 +111,7 @@ export class SongService {
       null,
       favoriteId,
     );
-    return track;
+    song.tracks = [track];
+    return 'okela add song to favorite';
   }
 }

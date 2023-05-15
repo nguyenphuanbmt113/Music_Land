@@ -90,7 +90,7 @@ export class AuthService {
     createUserDto: CreateUserDto,
     createProfileDto: CreateProfileDto,
   ) {
-    const { username, email, password } = createUserDto;
+    const { username, email, password, roles } = createUserDto;
     const user = new User();
 
     if (!this.isValidEmail(email)) {
@@ -114,7 +114,7 @@ export class AuthService {
     } else {
       user.email = email;
     }
-    user.roles = [Role.USER];
+    user.roles = roles;
     user.password = password;
     user.profile = await this.createProfile(user, createProfileDto);
     user.playlists = [];

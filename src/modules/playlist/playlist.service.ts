@@ -56,6 +56,38 @@ export class PlaylistService {
     const update = await playlist.remove();
     return update;
   }
+
+  async deletePlaylist(id: number) {
+    const playlist = await this.getPlaylistById(id);
+    if (!playlist) {
+      throw new NotFoundException(`Playlist with Id ${id} Does not found`);
+    }
+    await playlist.remove();
+  }
+
+  async clearPlaylistContent(id: number) {
+    const playlist = await this.getPlaylistById(id);
+    for (let i = 0; i < playlist.tracks.length; i++) {
+      await this.trackService.deleteTrack(playlist.tracks[i].id);
+    }
+    playlist.tracks = [];
+    return await playlist.save();
+  }
+
+  async removeTrackFromPlaylist(
+    playlistId: number,
+    trackId: number,
+  ): Promise<Playlist> {
+    const playlist = await this.getPlaylistById(playlistId);
+    for (let i = 0; i < playlist.tracks.length; i++) {
+      if (playlist.tracks[i].id === trackId) {
+        await this.trackService.deleteTrack(trackId);
+        playlist.tracks.splice(i, 1);
+        break;
+      }
+    }
+    return await playlist.save();
+  }
 }
 /*
 - localhost:3000/playlists --> Root Route (GET Method - Main-Endpoint - Controller Name)

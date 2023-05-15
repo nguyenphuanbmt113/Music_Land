@@ -14,7 +14,7 @@ export class Favorite extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   profileId: number;
 
   @OneToOne(() => Profile, (profile) => profile.favorite)

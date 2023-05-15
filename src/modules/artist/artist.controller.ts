@@ -98,8 +98,8 @@ export class ArtistController {
   }
 
   @Put(':id/update-singer')
-  // @UseGuards(AuthenticationGuard, AdminAuthGuard)
-  // @Roles([Role.ADMIN])
+  @UseGuards(AuthenticationGuard, AdminAuthGuard)
+  @Roles([Role.ADMIN])
   // @UseInterceptors(FileInterceptor('image'))
   updateSinger(
     @Param('id') id: number,

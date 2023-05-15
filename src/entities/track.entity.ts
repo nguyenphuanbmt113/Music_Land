@@ -27,21 +27,21 @@ export class Track extends BaseEntity {
   index: number;
 
   @ManyToOne(() => Playlist, (playlist) => playlist.tracks, {
-    eager: true,
+    eager: false,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   playlist: Playlist;
 
   @ManyToOne(() => Favorite, (favorite) => favorite.tracks, {
-    eager: true,
+    eager: false,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   favorite: Favorite;
 
   @ManyToOne(() => Song, (song) => song.tracks, {
-    eager: true,
+    eager: false,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })

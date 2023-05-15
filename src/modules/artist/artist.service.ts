@@ -112,6 +112,9 @@ export class ArtistService {
   //deleteSinger
   async deleteSinger(singerId: number) {
     const singer = await this.findSingerById(singerId);
+    if (singer.image) {
+      //remove image
+    }
     for (let i = 0; i < singer.singerAlbums.length; i++) {
       const singerAlbumItem = singer.singerAlbums[i];
       await this.singerAlbumService.deleteSingerAlbum(singerAlbumItem.id);

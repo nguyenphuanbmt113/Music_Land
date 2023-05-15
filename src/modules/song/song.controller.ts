@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Post,
   Put,
   Query,
   UploadedFile,
@@ -19,6 +20,7 @@ import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { SongService } from './song.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { UserAuthGuard } from '../auth/guards/userGuard.guard';
 @Controller('song')
 export class SongController {
   constructor(private songService: SongService) {}
@@ -74,7 +76,6 @@ export class SongController {
     @Body('language') language: SongLanguage,
     @UploadedFile() source: any,
   ) {
-    console.log('source:', source);
     return this.songService.updateSong(
       id,
       name,
@@ -91,5 +92,25 @@ export class SongController {
   @Roles([Role.ADMIN])
   delete(@Param('id') id: number) {
     return this.songService.deleteSong(id);
+  }
+
+  @Post(':songId/add-to-playlist/:playlistId')
+  @UseGuards(AuthenticationGuard, UserAuthGuard)
+  @Roles([Role.USER])
+  addToPlaylist(
+    @Param('songId') songId: number,
+    @Param('playlistId') playlistId: number,
+  ) {
+    return this.songService.addSongToPlaylist(songId, playlistId);
+  }
+
+  @Post(':songId/save-to-favorite-list/:favoriteId')
+  @UseGuards(AuthenticationGuard, UserAuthGuard)
+  @Roles([Role.USER])
+  saveToFavoriteList(
+    @Param('songId') songId: number,
+    @Param('favoriteId') favoriteId: number,
+  ) {
+    return this.songService.addSongToFavorite(songId, favoriteId);
   }
 }

@@ -34,7 +34,7 @@ export class Song extends AbstractMusic {
   singerAlbumId: number;
 
   @OneToMany(() => Track, (track) => track.playlist, {
-    eager: false,
+    eager: true,
   })
   tracks: Track[];
 }
