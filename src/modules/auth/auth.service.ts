@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcryptjs';
 import { Role } from 'src/common/enum/role.enum';
 import { EmailVerification } from 'src/entities/email-verify.entity';
 import { Favorite } from 'src/entities/favorite.entity';
@@ -16,10 +17,11 @@ import { Profile } from 'src/entities/profile.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { MailService } from '../mail/mail.service';
+import { PlaylistService } from '../playlist/playlist.service';
+import { ProfileService } from '../profile/profile.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { CreateUserDto } from './dto/register-user.dto';
 import { UserRepository } from './user.repository';
-import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
@@ -32,6 +34,8 @@ export class AuthService {
     private forgottenPasswordRepo: Repository<ForgottenPassword>,
 
     private sendEmailService: MailService,
+    private playlistService: PlaylistService,
+    private profileService: ProfileService,
     private jwt: JwtService,
   ) {}
 
@@ -55,7 +59,9 @@ export class AuthService {
     return count >= 1;
   }
   //login
-  async login(emailDtoLogin: any): Promise<{ token: string; user: User }> {
+  async login(
+    emailDtoLogin: any,
+  ): Promise<{ token: string; user: User; refresh_token: string }> {
     const { email, user } = await this.userRepository.validatePassword(
       emailDtoLogin,
     );
@@ -64,14 +70,25 @@ export class AuthService {
       id: user.id,
     };
     const token = this.generalToken(payload);
+    const refresh_token = this.jwt.sign({
+      payload,
+      secret: 'secretStringThatNoOneCanGuess',
+      signOptions: {
+        algorithm: 'HS512',
+        expiresIn: '3d',
+      },
+    });
+    user.refresh_token = refresh_token;
+    await user.save();
     return {
+      refresh_token,
       token,
       user,
     };
   }
   async signInAdmin(
     emailDtoLogin: any,
-  ): Promise<{ token: string; user: User }> {
+  ): Promise<{ token: string; user: User; refresh_token: string }> {
     const { email, user } = await this.userRepository.validateAdminPassword(
       emailDtoLogin,
     );
@@ -80,9 +97,19 @@ export class AuthService {
       id: user.id,
     };
     const token = this.generalToken(payload);
+    const refresh_token = this.jwt.sign({
+      payload,
+      secret: 'secretStringThatNoOneCanGuess',
+      signOptions: {
+        algorithm: 'HS512',
+        expiresIn: '3d',
+      },
+    });
+    user.refresh_token = refresh_token;
     return {
       token,
       user,
+      refresh_token,
     };
   }
   //register
@@ -420,6 +447,40 @@ export class AuthService {
     if (roles) {
       user.roles = roles;
       await user.save();
+    }
+  }
+  //delete account
+  async deleteUserAccount(userId: number) {
+    const user = await this.getUserById(userId);
+    //delete playlist
+    for (let i = 0; i < user.playlists.length; i++) {
+      const playlistItem = user.playlists[i].id;
+      await this.playlistService.deletePlaylist(playlistItem);
+    }
+    //delete profile
+    await this.profileService.deleteProfile(user.profileId);
+    await user.remove();
+    return 'delete okela';
+  }
+  //fresh_token
+  async refresh_token(refresh_token_cookie: string) {
+    //verified token
+    const verified_token = await this.jwt.verify(refresh_token_cookie);
+    //check refresh_token
+    const user = await this.userRepository.findOne({
+      where: {
+        refresh_token: refresh_token_cookie,
+        id: verified_token.id,
+      },
+    });
+    const payload = {
+      email: user.email,
+      id: user.id,
+    };
+    if (user) {
+      return {
+        new_token: this.generalToken(payload),
+      };
     }
   }
 }

@@ -23,6 +23,9 @@ export class User extends BaseEntity {
   @Column()
   email: string;
 
+  @Column({ nullable: true })
+  refresh_token: string;
+
   @Column({ select: false, nullable: true })
   password: string;
 
@@ -56,7 +59,6 @@ export class User extends BaseEntity {
 
   async validatePassword(hashPassword: string) {
     const comparePass = await bcryptjs.compareSync(hashPassword, this.password); //password hash
-    console.log('comparePass:', comparePass);
     return comparePass;
   }
 

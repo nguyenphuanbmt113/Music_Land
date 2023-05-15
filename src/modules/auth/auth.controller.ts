@@ -23,6 +23,9 @@ import { UserLoginDto } from './dto/login-user.dto';
 import { AdminAuthGuard } from './guards/adminGuard.guard';
 import { AuthenticationGuard } from './guards/jwt-guards.guard';
 import { SeftAuthGuard } from './guards/seftGuard.guard';
+import { UserDecorator } from './decorator/user.decorator';
+import { User } from 'src/entities/user.entity';
+import { CookieDecorator } from './decorator/cookie.decorator';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -30,17 +33,23 @@ export class AuthController {
 
   @Post('login-user')
   async loginUser(@Body() loginDto: any, @Res() res: Response) {
-    const { token, user } = await this.authService.login(
+    const { token, user, refresh_token } = await this.authService.login(
       loginDto as UserLoginDto,
     );
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+    });
     return res.send({ success: true, user, token });
   }
 
   @Post('login/admin')
   async signInAdmin(@Body() loginDto: any, @Res() res: Response) {
-    const { token, user } = await this.authService.signInAdmin(
+    const { token, user, refresh_token } = await this.authService.signInAdmin(
       loginDto as UserLoginDto,
     );
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+    });
     return res.send({ success: true, user, token });
   }
 
@@ -140,10 +149,16 @@ export class AuthController {
     res.sendFile(pathfile, { root: './avatars' });
   }
 
-  // @Delete('delete-user-account')
-  // @UseGuards(AuthenticationGuard, UseGuards)
-  // @Roles([Role.USER])
-  // deleteUserAccount(@UserDecorator() user: User) {
-  //   return this.authService.deleteUserAccount(user);
-  // }
+  @Delete('delete-user-account')
+  @UseGuards(AuthenticationGuard, UseGuards)
+  @Roles([Role.USER])
+  deleteUserAccount(@UserDecorator() user: User) {
+    return this.authService.deleteUserAccount(user.id);
+  }
+
+  @Post('refresh_token')
+  async refresh_token(@CookieDecorator() refresh_token: string) {
+    const result = await this.authService.refresh_token(refresh_token);
+    return result;
+  }
 }

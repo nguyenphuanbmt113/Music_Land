@@ -10,10 +10,14 @@ import { User } from 'src/entities/user.entity';
 import { EmailVerification } from 'src/entities/email-verify.entity';
 import { MailModule } from '../mail/mail.module';
 import { ForgottenPassword } from 'src/entities/password-forgot.entity';
+import { ProfileModule } from '../profile/profile.module';
+import { PlaylistModule } from '../playlist/playlist.module';
 
 @Module({
   imports: [
     MailModule,
+    ProfileModule,
+    PlaylistModule,
     TypeOrmModule.forFeature([User, EmailVerification, ForgottenPassword]),
     JwtModule.register({
       secret: 'secretStringThatNoOneCanGuess',
