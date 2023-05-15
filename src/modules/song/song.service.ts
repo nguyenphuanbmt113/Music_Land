@@ -7,6 +7,7 @@ import { DeleteResult } from 'typeorm';
 import { SongRepository } from './song.repository';
 import { PlaylistService } from '../playlist/playlist.service';
 import { FavoriteService } from '../favorite/favorite.service';
+import { StrackService } from '../strack/strack.service';
 
 @Injectable()
 export class SongService {
@@ -14,6 +15,7 @@ export class SongService {
     @InjectRepository(SongRepository) private songRepository: SongRepository,
     private playlistService: PlaylistService,
     private favoriteService: FavoriteService,
+    private trackService: StrackService,
   ) {}
 
   async getAllSongs(): Promise<Song[]> {
@@ -83,9 +85,16 @@ export class SongService {
   }
 
   async deleteSong(id: number): Promise<DeleteResult> {
+    const song = await this.getSongById(id);
+    for (let i = 0; i < song.tracks.length; i++) {
+      await this.trackService.deleteTrack(song.tracks[i].id);
+    }
+    if (song.source) {
+      //delete sourse
+    }
     const result = await this.songRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Song with id ${id} does not found`);
+      throw new NotFoundException(`Music with id ${id} does not found`);
     }
     return result;
   }
