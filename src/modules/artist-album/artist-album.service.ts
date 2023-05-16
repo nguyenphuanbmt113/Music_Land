@@ -6,6 +6,7 @@ import { SingerAlbum } from 'src/entities/singer-album.entity';
 import { Song } from 'src/entities/song.entity';
 import { Repository } from 'typeorm';
 import { SongService } from '../song/song.service';
+import { CreateAlbumDto } from './dto/createAlbumDto.dto';
 
 @Injectable()
 export class ArtistAlbumService {
@@ -56,7 +57,7 @@ export class ArtistAlbumService {
   //localhost:3000/singer-albums/:id/update-album
   async updateSingerAlbum(
     id: number,
-    createAlbumDto: any,
+    createAlbumDto: CreateAlbumDto,
   ): Promise<SingerAlbum> {
     const singerAlbum = await this.getSignerAlbumById(id);
     const { name } = createAlbumDto;

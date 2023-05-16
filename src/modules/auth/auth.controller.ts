@@ -77,7 +77,7 @@ export class AuthController {
 
   @Get(':email')
   getEmail(@Param('email') email: string) {
-    return this.authService.findEmail(email);
+    return this.authService.getUserByEmail(email);
   }
 
   @Get()

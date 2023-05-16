@@ -19,6 +19,7 @@ import { Roles } from '../auth/decorator/role.decorator';
 import { AdminAuthGuard } from '../auth/guards/adminGuard.guard';
 import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { ArtistAlbumService } from './artist-album.service';
+import { CreateAlbumDto } from './dto/createAlbumDto.dto';
 @Controller('artist-album')
 export class ArtistAlbumController {
   constructor(private singerAlbumService: ArtistAlbumService) {}
@@ -74,7 +75,7 @@ export class ArtistAlbumController {
   @Put(':id/update-album')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  updateAlbum(@Param('id') id: number, @Body() createAlbumDto: any) {
+  updateAlbum(@Param('id') id: number, @Body() createAlbumDto: CreateAlbumDto) {
     return this.singerAlbumService.updateSingerAlbum(id, createAlbumDto);
   }
 }

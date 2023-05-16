@@ -5,6 +5,7 @@ import { Music } from 'src/entities/music.entity';
 import { MusicianAlbum } from 'src/entities/musician-album.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { MusicService } from '../music/music.service';
+import { UpdateAlbumDto } from './dto/update-album.dto';
 
 @Injectable()
 export class MusicianAlbumService {
@@ -56,7 +57,7 @@ export class MusicianAlbumService {
 
   async updateMusicianAlbum(
     id: number,
-    createAlbumDto: any,
+    createAlbumDto: UpdateAlbumDto,
   ): Promise<MusicianAlbum> {
     const musicianAlbum = await this.getMusicianAlbumById(id);
     const { name } = createAlbumDto;

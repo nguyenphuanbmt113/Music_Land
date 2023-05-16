@@ -19,6 +19,7 @@ import { Roles } from '../auth/decorator/role.decorator';
 import { MusicType } from 'src/common/enum/music-type';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { UpdateAlbumDto } from './dto/update-album.dto';
 @UseInterceptors(
   FileInterceptor('sourse', {
     storage: diskStorage({
@@ -72,7 +73,7 @@ export class MusicianAlbumController {
   @Roles([Role.ADMIN])
   updateAlbum(
     @Param('id', ParseIntPipe) id: number,
-    @Body() createAlbumDto: any,
+    @Body() createAlbumDto: UpdateAlbumDto,
   ) {
     return this.musicianAlbumService.updateMusicianAlbum(id, createAlbumDto);
   }
