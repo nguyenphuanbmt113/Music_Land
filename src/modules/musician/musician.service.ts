@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs';
 import { ArtistType } from 'src/common/enum/artist.enum';
 import { GENDER } from 'src/common/enum/gender.enum';
 import { MusicianAlbum } from 'src/entities/musician-album.entity';
 import { Musician } from 'src/entities/musician.entity';
 import { MusicianRepository } from './musician.repository';
-
 @Injectable()
 export class MusicianService {
   constructor(
@@ -19,12 +19,12 @@ export class MusicianService {
   }
 
   //localhost:3000/musicians/limited
-  async getLimitSingers(limit: number) {
+  async getLimitMusicians(limit: number) {
     const musicians = await this.musicianRepository.getLimitedMusicians(limit);
     return musicians;
   }
   //localhost:3000/musicians/filtered
-  async getFilterSingers(
+  async getFilterMusicians(
     limit: number,
     nationality: string,
     type: ArtistType,
@@ -40,67 +40,84 @@ export class MusicianService {
   }
 
   //localhost: 3000/musicians/:id
-  async findSingerById(id: number) {
+  async findMusicianById(id: number) {
     return await this.musicianRepository.findOne({
       where: { id },
     });
   }
-  //localhost:3000/musicians/new-singer
-  async createSinger(data: any) {
+  //localhost:3000/musicians/new-Musician
+  async createMusician(
+    name: string,
+    info: string,
+    gender: GENDER,
+    type: ArtistType,
+    nationality: string,
+    image: any,
+  ) {
     const n_musician = new Musician();
-    n_musician.name = data.name;
-    n_musician.info = data.info;
-    n_musician.image = data.image;
-    n_musician.type = data.type;
-    n_musician.gender = data.gender;
-    n_musician.nationality = data.nationality;
+    n_musician.name = name;
+    n_musician.info = info;
+    n_musician.image = image.path;
+    n_musician.type = type;
+    n_musician.gender = gender;
+    n_musician.nationality = nationality;
     n_musician.musicianAlbums = [];
 
     const artist = await n_musician.save();
     return artist;
   }
   //localhost:3000/musicians/:id/new-album
-  async createAlbum(musicianId: number, data: any) {
+  async createAlbum(musicianId: number, data: any, image: any) {
     const musician = await this.musicianRepository.findOne({
       where: { id: musicianId },
     });
     const album = new MusicianAlbum();
     album.name = data.name;
-    album.image = data.image;
+    album.image = image.path;
     album.musician = musician;
     const nalbum = await album.save();
     return nalbum;
   }
   //localhost:3000/musicians/:id/update-musician
-  async updateSinger(id: number, data: any): Promise<Musician> {
-    const musician = await this.findSingerById(id);
-    if (data.name) {
-      musician.name = data.name;
+  async updateMusician(
+    id: number,
+    name: string,
+    info: string,
+    gender: GENDER,
+    nationality: string,
+    type: ArtistType,
+    image: any,
+  ): Promise<Musician> {
+    const musician = await this.findMusicianById(id);
+    if (name) {
+      musician.name = name;
     }
-    if (data.info) {
-      musician.info = data.info;
+    if (info) {
+      musician.info = info;
     }
-    if (data.gender) {
-      musician.gender = data.gender;
+    if (gender) {
+      musician.gender = gender;
     }
-    if (data.nationality) {
-      musician.nationality = data.nationality;
+    if (nationality) {
+      musician.nationality = nationality;
     }
-    if (data.type) {
-      musician.type = data.type;
+    if (type) {
+      musician.type = type;
     }
-    if (data.image) {
-      // await this.awsService.fileDelete(singer.image);
-      // singer.image = await this.awsService.fileUpload(image, 'singer-images');
-      musician.image = data.image;
+    if (image) {
+      fs.unlinkSync(musician.image);
+      musician.image = image.path;
     }
     const savedSinger = await musician.save();
     return savedSinger;
   }
 
   //deleteSinger
-  async deleteSinger(singerId: number) {
-    const musician = await this.findSingerById(singerId);
+  async deleteMusician(singerId: number) {
+    const musician = await this.findMusicianById(singerId);
+    // musician.musicianAlbums.forEach((element) => {
+    //   await this.musicAlbumService.deleteMusician(element.id);
+    // });
     const result = await musician.remove();
     return result;
   }

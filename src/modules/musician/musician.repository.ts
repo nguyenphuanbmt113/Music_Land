@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ArtistType } from 'src/common/enum/artist.enum';
 import { GENDER } from 'src/common/enum/gender.enum';
 import { Musician } from 'src/entities/musician.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class MusicianRepository extends Repository<Musician> {
+  constructor(private dataSource: DataSource) {
+    super(Musician, dataSource.createEntityManager());
+  }
   async getLimitedMusicians(limit: number): Promise<Musician[]> {
     const query = this.createQueryBuilder('musician').select();
     if (limit) {

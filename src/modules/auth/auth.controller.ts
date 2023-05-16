@@ -130,7 +130,7 @@ export class AuthController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './avatars',
+        destination: './files/avatar',
         filename: editFile,
       }),
       fileFilter,

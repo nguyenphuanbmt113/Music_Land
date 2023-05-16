@@ -19,6 +19,8 @@ import { AdminAuthGuard } from '../auth/guards/adminGuard.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MusicType } from 'src/common/enum/music-type';
 import { MusicService } from './music.service';
+import { diskStorage } from 'multer';
+import { editFile, fileFilter } from 'src/common/helpers/handling-files.helper';
 
 @Controller('music')
 export class MusicController {
@@ -51,7 +53,15 @@ export class MusicController {
   @Put(':id/update-music')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  @UseInterceptors(FileInterceptor('source'))
+  @UseInterceptors(
+    FileInterceptor('sourse', {
+      storage: diskStorage({
+        destination: './files/sourse',
+        filename: editFile,
+      }),
+      fileFilter,
+    }),
+  )
   updateMusic(
     @Param('id') id: number,
     @Body('name') name: string,

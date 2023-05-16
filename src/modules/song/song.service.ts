@@ -78,7 +78,7 @@ export class SongService {
       song.language = language;
     }
     if (source) {
-      fs.unlinkSync(song.sourse);
+      fs.unlinkSync(song.source);
       song.source = source.path;
     }
     const updatedSong = await song.save();

@@ -7,33 +7,51 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { ArtistType } from 'src/common/enum/artist.enum';
 import { GENDER } from 'src/common/enum/gender.enum';
 import { Role } from 'src/common/enum/role.enum';
 import { Roles } from '../auth/decorator/role.decorator';
-import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { AdminAuthGuard } from '../auth/guards/adminGuard.guard';
+import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { MusicianService } from './musician.service';
 
+@UseInterceptors(
+  FileInterceptor('image', {
+    storage: diskStorage({
+      destination: './files/musician/sourse',
+      filename: (req, file, cb) => {
+        const name = file.originalname.split('.')[0];
+        const nameExtension = file.originalname.split('.')[1];
+        const newName =
+          name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+        cb(null, newName);
+      },
+    }),
+  }),
+)
 @Controller('musician')
 export class MusicianController {
   constructor(private musicianService: MusicianService) {}
-  //localhost:3000/singers
+
   @Get()
-  getAllSingers() {
+  getAllMusicians() {
     return this.musicianService.findAll();
   }
 
   @Get('filtered')
-  getFilteredSingers(
+  getFilteredMusicians(
     @Query('limit') limit: number,
     @Query('type') type: ArtistType,
     @Query('nationality') nationality: string,
     @Query('gender') gender: GENDER,
   ) {
-    return this.musicianService.getFilterSingers(
+    return this.musicianService.getFilterMusicians(
       limit,
       nationality,
       type,
@@ -42,43 +60,76 @@ export class MusicianController {
   }
 
   @Get('limited')
-  getLimitedSingers(@Query('limit') limit: number) {
-    return this.musicianService.getLimitSingers(limit);
+  getLimitedMusicians(@Query('limit') limit: number) {
+    return this.musicianService.getLimitMusicians(limit);
   }
 
-  //localhost:3000/singers
+  //localhost:3000/musicians
   @Post()
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  createNewSinger(@Body() data: any) {
-    return this.musicianService.createSinger(data);
+  createNewMusician(
+    @Body('name') name: string,
+    @Body('info') info: string,
+    @Body('gender') gender: GENDER,
+    @Body('nationality') nationality: string,
+    @Body('type') type: ArtistType,
+    @UploadedFile() image: any,
+  ) {
+    return this.musicianService.createMusician(
+      name,
+      info,
+      gender,
+      type,
+      nationality,
+      image,
+    );
   }
 
-  //localhost:3000/singers/:id
+  //localhost:3000/musicians/:id
   @Get(':id')
-  getSingerById(@Param('id') id: number) {
-    return this.musicianService.findSingerById(id);
+  getMusicianById(@Param('id') id: number) {
+    return this.musicianService.findMusicianById(id);
   }
 
   @Post(':id/new-album')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  createNewAlbum(@Param('id') id: number, @Body() createAlbumDto: any) {
-    return this.musicianService.createAlbum(id, createAlbumDto);
+  createNewAlbum(
+    @Param('id') id: number,
+    @Body() createAlbumDto: any,
+    @UploadedFile() image: any,
+  ) {
+    return this.musicianService.createAlbum(id, createAlbumDto, image);
   }
 
-  @Put(':id/update-singer')
+  @Put(':id/update-musician')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  // @UseInterceptors(FileInterceptor('image'))
-  updateSinger(@Param('id') id: number, @Body() data: any) {
-    return this.musicianService.updateSinger(id, data);
+  updateMusician(
+    @Param('id') id: number,
+    @Body('name') name: string,
+    @Body('info') info: string,
+    @Body('gender') gender: GENDER,
+    @Body('nationality') nationality: string,
+    @Body('type') type: ArtistType,
+    @UploadedFile() image: any,
+  ) {
+    return this.musicianService.updateMusician(
+      id,
+      name,
+      info,
+      gender,
+      nationality,
+      type,
+      image,
+    );
   }
 
-  @Delete(':id/delete-singer')
+  @Delete(':id/delete-musician')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  deleteSinger(@Param('id') id: number) {
-    return this.musicianService.deleteSinger(id);
+  deleteMusician(@Param('id') id: number) {
+    return this.musicianService.deleteMusician(id);
   }
 }

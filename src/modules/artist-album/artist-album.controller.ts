@@ -3,23 +3,22 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { Role } from 'src/common/enum/role.enum';
 import { SongLanguage } from 'src/common/enum/song-lang';
 import { SongType } from 'src/common/enum/song-type';
+import { fileFilter } from 'src/common/helpers/handling-files.helper';
 import { Roles } from '../auth/decorator/role.decorator';
 import { AdminAuthGuard } from '../auth/guards/adminGuard.guard';
 import { AuthenticationGuard } from '../auth/guards/jwt-guards.guard';
 import { ArtistAlbumService } from './artist-album.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { fileFilter } from 'src/common/helpers/handling-files.helper';
 @Controller('artist-album')
 export class ArtistAlbumController {
   constructor(private singerAlbumService: ArtistAlbumService) {}
@@ -40,7 +39,7 @@ export class ArtistAlbumController {
   @UseInterceptors(
     FileInterceptor('sourse', {
       storage: diskStorage({
-        destination: './mp4/sourse',
+        destination: './files/sourse',
         filename: (req, file, cb) => {
           const name = file.originalname.split('.')[0];
           const nameExtension = file.originalname.split('.')[1];

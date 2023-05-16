@@ -30,7 +30,7 @@ import { fileFilter } from 'src/common/helpers/handling-files.helper';
 @UseInterceptors(
   FileInterceptor('image', {
     storage: diskStorage({
-      destination: './photos/user',
+      destination: './files/user',
       filename: (req, file, cb) => {
         const name = file.originalname.split('.')[0];
         const nameExtension = file.originalname.split('.')[1];

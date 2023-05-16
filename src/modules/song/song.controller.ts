@@ -56,7 +56,7 @@ export class SongController {
   @UseInterceptors(
     FileInterceptor('sourse', {
       storage: diskStorage({
-        destination: './mp4/sourse',
+        destination: './files/sourse',
         filename: (req, file, cb) => {
           const name = file.originalname.split('.')[0];
           const nameExtension = file.originalname.split('.')[1];
