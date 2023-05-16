@@ -24,7 +24,7 @@ import { MusicianService } from './musician.service';
 @UseInterceptors(
   FileInterceptor('image', {
     storage: diskStorage({
-      destination: './files/musician/sourse',
+      destination: './files/sourse',
       filename: (req, file, cb) => {
         const name = file.originalname.split('.')[0];
         const nameExtension = file.originalname.split('.')[1];

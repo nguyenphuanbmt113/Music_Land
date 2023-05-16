@@ -22,6 +22,15 @@ import { MusicService } from './music.service';
 import { diskStorage } from 'multer';
 import { editFile, fileFilter } from 'src/common/helpers/handling-files.helper';
 
+@UseInterceptors(
+  FileInterceptor('sourse', {
+    storage: diskStorage({
+      destination: './files/sourse',
+      filename: editFile,
+    }),
+    fileFilter,
+  }),
+)
 @Controller('music')
 export class MusicController {
   constructor(private musicService: MusicService) {}
@@ -53,15 +62,6 @@ export class MusicController {
   @Put(':id/update-music')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
-  @UseInterceptors(
-    FileInterceptor('sourse', {
-      storage: diskStorage({
-        destination: './files/sourse',
-        filename: editFile,
-      }),
-      fileFilter,
-    }),
-  )
   updateMusic(
     @Param('id') id: number,
     @Body('name') name: string,
