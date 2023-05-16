@@ -24,7 +24,7 @@ import { MusicianService } from './musician.service';
 @UseInterceptors(
   FileInterceptor('image', {
     storage: diskStorage({
-      destination: './files/sourse',
+      destination: './files/musicians',
       filename: (req, file, cb) => {
         const name = file.originalname.split('.')[0];
         const nameExtension = file.originalname.split('.')[1];
@@ -95,12 +95,26 @@ export class MusicianController {
   @Post(':id/new-album')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
+  @UseInterceptors(
+    FileInterceptor('image2', {
+      storage: diskStorage({
+        destination: './files/musicians-album',
+        filename: (req, file, cb) => {
+          const name = file.originalname.split('.')[0];
+          const nameExtension = file.originalname.split('.')[1];
+          const newName =
+            name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+          cb(null, newName);
+        },
+      }),
+    }),
+  )
   createNewAlbum(
     @Param('id') id: number,
     @Body() createAlbumDto: any,
-    @UploadedFile() image: any,
+    @UploadedFile() image2: any,
   ) {
-    return this.musicianService.createAlbum(id, createAlbumDto, image);
+    return this.musicianService.createAlbum(id, createAlbumDto, image2);
   }
 
   @Put(':id/update-musician')

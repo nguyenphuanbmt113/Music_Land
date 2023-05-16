@@ -30,7 +30,7 @@ import { fileFilter } from 'src/common/helpers/handling-files.helper';
 @UseInterceptors(
   FileInterceptor('image', {
     storage: diskStorage({
-      destination: './files/user',
+      destination: './files/singers',
       filename: (req, file, cb) => {
         const name = file.originalname.split('.')[0];
         const nameExtension = file.originalname.split('.')[1];
@@ -91,12 +91,42 @@ export class ArtistController {
   @Post(':id/new-album')
   @UseGuards(AuthenticationGuard, AdminAuthGuard)
   @Roles([Role.ADMIN])
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './files/singers',
+        filename: (req, file, cb) => {
+          const name = file.originalname.split('.')[0];
+          const nameExtension = file.originalname.split('.')[1];
+          const newName =
+            name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+          cb(null, newName);
+        },
+      }),
+      fileFilter: fileFilter,
+    }),
+  )
+  @UseInterceptors(
+    FileInterceptor('image2', {
+      storage: diskStorage({
+        destination: './files/singers-album',
+        filename: (req, file, cb) => {
+          const name = file.originalname.split('.')[0];
+          const nameExtension = file.originalname.split('.')[1];
+          const newName =
+            name.split(' ').join('_') + '_' + Date.now() + '.' + nameExtension;
+          cb(null, newName);
+        },
+      }),
+      fileFilter: fileFilter,
+    }),
+  )
   createNewAlbum(
     @Param('id') id: number,
     @Body() createAlbumDto: CreateAlbumDto,
-    @UploadedFile() image: any,
+    @UploadedFile() image2: any,
   ) {
-    return this.singerService.createAlbum(id, createAlbumDto, image);
+    return this.singerService.createAlbum(id, createAlbumDto, image2);
   }
 
   @Put(':id/update-singer')
