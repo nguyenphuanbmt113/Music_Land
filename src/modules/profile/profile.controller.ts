@@ -17,7 +17,7 @@ import { diskStorage } from 'multer';
 @UseInterceptors(
   FileInterceptor('image', {
     storage: diskStorage({
-      destination: './photos/user',
+      destination: './files/avatar',
       filename: (req, file, cb) => {
         const name = file.originalname.split('.')[0];
         const nameExtension = file.originalname.split('.')[1];
